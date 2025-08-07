@@ -1,0 +1,88 @@
+// Определяет источник данных (базу данных)
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// Определяет генератор клиента Prisma
+generator client {
+    provider = "prisma-client-js"
+}
+
+// Перечисление для статусов картриджей
+enum CartridgeStatus {
+    service // В сервисе
+    working // В работе
+    reserve // В резерве
+    available // В наличии
+    refill // В заправке
+}
+
+// Перечисление для статусов партий отправки в сервис
+enum BatchStatus {
+    in_progress // В стадии заправки (отправлена в сервис)
+    completed // Выполнено (все картриджи вернулись)
+    partial_return // Частичный возврат (некоторые картриджи вернулись)
+}
+
+// Модель для картриджей
+model Cartridge {
+    id     String          @id @default(cuid())
+    number String          @unique // Уникальный номер картриджа (например, МК101)
+    model  String // Модель картриджа (например, CE505A)
+    status CartridgeStatus // Текущий статус картриджа
+
+    // Связи с записями о заменах
+    replacementInstalled CartridgeReplacement[] @relation("InstalledCartridge")
+    replacementRemoved   CartridgeReplacement[] @relation("RemovedCartridge")
+
+    // Связи с партиями отправки в сервис (через промежуточную таблицу)
+    serviceBatchEntries ServiceBatchCartridge[]
+}
+
+// Модель для записей о заменах картриджей
+model CartridgeReplacement {
+    id                       String   @id @default(cuid())
+    date                     DateTime @db.Date // Дата замены
+    department               String // Подразделение
+    installedCartridgeNumber String // Номер установленного картриджа
+    removedCartridgeNumber   String // Номер снятого картриджа
+    responsible              String // Ответственный за исполнение
+    createdAt                DateTime @default(now())
+
+    // Связи с моделью Cartridge
+    installedCartridge Cartridge @relation("InstalledCartridge", fields: [installedCartridgeNumber], references: [number])
+    removedCartridge   Cartridge @relation("RemovedCartridge", fields: [removedCartridgeNumber], references: [number])
+}
+
+// Модель для партий отправки картриджей в сервис
+model ServiceBatch {
+    id          String      @id @default(cuid())
+    batchNumber String      @unique // Уникальный номер партии
+    date        DateTime    @db.Date // Дата отправки в сервис
+    responsible String // Ответственный за отправку
+    notes       String? // Примечания
+    createdAt   DateTime    @default(now())
+    status      BatchStatus // Статус партии (в работе, выполнено, частичный возврат)
+
+    // Связь с картриджами, входящими в эту партию (через промежуточную таблицу)
+    cartridgesInBatch ServiceBatchCartridge[]
+}
+
+// Промежуточная модель для связи Cartridge и ServiceBatch
+// Позволяет отслеживать статус возврата каждого картриджа в рамках конкретной партии
+model ServiceBatchCartridge {
+    id             String @id @default(cuid())
+    cartridgeId    String
+    serviceBatchId String
+
+    cartridge    Cartridge    @relation(fields: [cartridgeId], references: [id])
+    serviceBatch ServiceBatch @relation(fields: [serviceBatchId], references: [id])
+
+    returned          Boolean   @default(false) // Был ли этот конкретный картридж возвращен
+    returnDate        DateTime? @db.Date // Дата возврата этого конкретного картриджа
+    returnResponsible String? // Ответственный за прием этого конкретного картриджа
+    returnNotes       String? // Примечания к возврату этого конкретного картриджа
+
+    @@unique([cartridgeId, serviceBatchId]) // Картридж может быть в одной партии только один раз
+}
