@@ -1,13 +1,13 @@
 export interface Cartridge {
   id: string;
   number: string; // МК101
-  model: string;  // CE505A
+  model: string; // CE505A
   status: CartridgeStatus;
   returnDate?: string; // Дата возврата из сервиса
   returnResponsible?: string; // Ответственный за прием
 }
 
-// Обновляем тип статуса, добавляя "refill" (в заправке)
+// Обновляем тип статуса, добавляя "refill" (Требуется заправка)
 export type CartridgeStatus = 'service' | 'working' | 'reserve' | 'available' | 'refill';
 
 // Добавляем интерфейс для записи замены

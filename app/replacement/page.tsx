@@ -119,11 +119,11 @@ export default function ReplacementPage() {
 
   const getStatusBadge = (cartridge: Cartridge) => {
     const statusMap = {
-      available: { label: 'В наличии', color: 'bg-green-500' },
-      reserve: { label: 'В резерве', color: 'bg-blue-500' },
+      available: { label: 'Готовы к использованию', color: 'bg-green-500' },
+      reserve: { label: 'Сняты с обслуживания', color: 'bg-blue-500' },
       working: { label: 'В работе', color: 'bg-orange-500' },
       service: { label: 'В сервисе', color: 'bg-red-500' },
-      refill: { label: 'В заправке', color: 'bg-purple-500' },
+      refill: { label: 'Требуется заправка', color: 'bg-purple-500' },
     };
 
     const status = statusMap[cartridge.status];

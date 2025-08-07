@@ -1,19 +1,39 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { ArrowLeft, Package, CheckCircle, Clock, AlertCircle, Eye, Calendar } from 'lucide-react';
-import Link from "next/link";
-import { Cartridge, ServiceBatch, BatchReturn, BatchStatus, CartridgeReturn } from "@/types/cartridge";
+import Link from 'next/link';
+import {
+  Cartridge,
+  ServiceBatch,
+  BatchReturn,
+  BatchStatus,
+  CartridgeReturn,
+} from '@/types/cartridge';
 
 // Демо данные партий в сервисе
 const demoServiceBatches: ServiceBatch[] = [
@@ -29,7 +49,7 @@ const demoServiceBatches: ServiceBatch[] = [
     responsible: 'Иванов И.И.',
     notes: 'Срочная заправка',
     createdAt: new Date('2024-01-15'),
-    status: 'in_progress'
+    status: 'in_progress',
   },
   {
     id: '2',
@@ -41,28 +61,28 @@ const demoServiceBatches: ServiceBatch[] = [
     ],
     responsible: 'Петров П.П.',
     createdAt: new Date('2024-01-16'),
-    status: 'in_progress'
+    status: 'in_progress',
   },
   {
     id: '3',
     batchNumber: 'SB-001236',
     date: '2024-01-14',
     cartridges: [
-      { 
-        id: '6', 
-        number: 'МК106', 
-        model: 'CB435A', 
+      {
+        id: '6',
+        number: 'МК106',
+        model: 'CB435A',
         status: 'available',
         returnDate: '2024-01-20',
-        returnResponsible: 'Морозов М.М.'
+        returnResponsible: 'Морозов М.М.',
       },
-      { 
-        id: '7', 
-        number: 'МК107', 
-        model: 'CE505A', 
+      {
+        id: '7',
+        number: 'МК107',
+        model: 'CE505A',
         status: 'available',
         returnDate: '2024-01-20',
-        returnResponsible: 'Морозов М.М.'
+        returnResponsible: 'Морозов М.М.',
       },
     ],
     responsible: 'Сидоров С.С.',
@@ -73,28 +93,28 @@ const demoServiceBatches: ServiceBatch[] = [
         cartridgeId: '6',
         returnDate: '2024-01-20',
         responsible: 'Морозов М.М.',
-        notes: 'Заправлен полностью'
+        notes: 'Заправлен полностью',
       },
       {
         cartridgeId: '7',
         returnDate: '2024-01-20',
         responsible: 'Морозов М.М.',
-        notes: 'Заправлен полностью'
-      }
-    ]
+        notes: 'Заправлен полностью',
+      },
+    ],
   },
   {
     id: '4',
     batchNumber: 'SB-001237',
     date: '2024-01-13',
     cartridges: [
-      { 
-        id: '8', 
-        number: 'МК108', 
-        model: 'CE505A', 
+      {
+        id: '8',
+        number: 'МК108',
+        model: 'CE505A',
         status: 'available',
         returnDate: '2024-01-18',
-        returnResponsible: 'Козлов К.К.'
+        returnResponsible: 'Козлов К.К.',
       },
       { id: '9', number: 'МК109', model: 'CF280A', status: 'service' },
       { id: '10', number: 'МК110', model: 'CB435A', status: 'service' },
@@ -110,10 +130,10 @@ const demoServiceBatches: ServiceBatch[] = [
         cartridgeId: '8',
         returnDate: '2024-01-18',
         responsible: 'Козлов К.К.',
-        notes: 'Первая партия возврата'
-      }
-    ]
-  }
+        notes: 'Первая партия возврата',
+      },
+    ],
+  },
 ];
 
 interface ReturnFormData {
@@ -128,52 +148,57 @@ export default function ServiceReturnPage() {
   const [selectedCartridges, setSelectedCartridges] = useState<string[]>([]);
   const [showReturnDialog, setShowReturnDialog] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ReturnFormData>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ReturnFormData>({
     defaultValues: {
-      returnDate: new Date().toISOString().split('T')[0]
-    }
+      returnDate: new Date().toISOString().split('T')[0],
+    },
   });
 
   const getBatchStatusBadge = (status: BatchStatus) => {
     const statusMap = {
-      'in_progress': { label: 'В стадии заправки', color: 'bg-orange-500', icon: Clock },
-      'completed': { label: 'Выполнено', color: 'bg-green-500', icon: CheckCircle },
-      'partial_return': { label: 'Частичный возврат', color: 'bg-yellow-500', icon: AlertCircle }
+      in_progress: { label: 'В стадии заправки', color: 'bg-orange-500', icon: Clock },
+      completed: { label: 'Выполнено', color: 'bg-green-500', icon: CheckCircle },
+      partial_return: { label: 'Частичный возврат', color: 'bg-yellow-500', icon: AlertCircle },
     };
-    
+
     const config = statusMap[status];
     const Icon = config.icon;
-    
+
     return (
       <Badge className={`${config.color} text-white flex items-center gap-1`}>
-        <Icon className="h-3 w-3" />
+        <Icon className='h-3 w-3' />
         {config.label}
       </Badge>
     );
   };
 
   const getAvailableCartridges = (batch: ServiceBatch) => {
-    return batch.cartridges.filter(c => c.status === 'service');
+    return batch.cartridges.filter((c) => c.status === 'service');
   };
 
   const getReturnedCartridges = (batch: ServiceBatch) => {
-    return batch.cartridges.filter(c => batch.returnedCartridges?.includes(c.id));
+    return batch.cartridges.filter((c) => batch.returnedCartridges?.includes(c.id));
   };
 
   const getCartridgeReturnInfo = (batch: ServiceBatch, cartridgeId: string) => {
-    return batch.cartridgeReturns?.find(cr => cr.cartridgeId === cartridgeId);
+    return batch.cartridgeReturns?.find((cr) => cr.cartridgeId === cartridgeId);
   };
 
   const handleCartridgeSelect = (cartridgeId: string, checked: boolean) => {
     if (checked) {
-      setSelectedCartridges(prev => [...prev, cartridgeId]);
+      setSelectedCartridges((prev) => [...prev, cartridgeId]);
     } else {
-      setSelectedCartridges(prev => prev.filter(id => id !== cartridgeId));
+      setSelectedCartridges((prev) => prev.filter((id) => id !== cartridgeId));
     }
   };
 
   const handleSelectAll = (batch: ServiceBatch, checked: boolean) => {
-    const availableIds = getAvailableCartridges(batch).map(c => c.id);
+    const availableIds = getAvailableCartridges(batch).map((c) => c.id);
     if (checked) {
       setSelectedCartridges(availableIds);
     } else {
@@ -188,7 +213,7 @@ export default function ServiceReturnPage() {
     reset({
       returnDate: new Date().toISOString().split('T')[0],
       responsible: '',
-      notes: ''
+      notes: '',
     });
   };
 
@@ -202,61 +227,63 @@ export default function ServiceReturnPage() {
     const isFullReturn = selectedCartridges.length === availableCartridges.length;
 
     // Обновляем партию
-    setServiceBatches(prev => prev.map(batch => {
-      if (batch.id === selectedBatch.id) {
-        const updatedBatch = { ...batch };
-        
-        // Создаем записи о возврате картриджей
-        const newCartridgeReturns: CartridgeReturn[] = selectedCartridges.map(cartridgeId => ({
-          cartridgeId,
-          returnDate: data.returnDate,
-          responsible: data.responsible,
-          notes: data.notes
-        }));
+    setServiceBatches((prev) =>
+      prev.map((batch) => {
+        if (batch.id === selectedBatch.id) {
+          const updatedBatch = { ...batch };
 
-        updatedBatch.cartridgeReturns = [
-          ...(updatedBatch.cartridgeReturns || []),
-          ...newCartridgeReturns
-        ];
-        
-        if (isFullReturn) {
-          // Полный возврат
-          updatedBatch.status = 'completed';
-          updatedBatch.cartridges = updatedBatch.cartridges.map(cartridge => 
-            selectedCartridges.includes(cartridge.id) 
-              ? { 
-                  ...cartridge, 
-                  status: 'available',
-                  returnDate: data.returnDate,
-                  returnResponsible: data.responsible
-                }
-              : cartridge
-          );
-        } else {
-          // Частичный возврат
-          updatedBatch.status = 'partial_return';
-          updatedBatch.returnedCartridges = [
-            ...(updatedBatch.returnedCartridges || []),
-            ...selectedCartridges
+          // Создаем записи о возврате картриджей
+          const newCartridgeReturns: CartridgeReturn[] = selectedCartridges.map((cartridgeId) => ({
+            cartridgeId,
+            returnDate: data.returnDate,
+            responsible: data.responsible,
+            notes: data.notes,
+          }));
+
+          updatedBatch.cartridgeReturns = [
+            ...(updatedBatch.cartridgeReturns || []),
+            ...newCartridgeReturns,
           ];
-          updatedBatch.partialReturnDate = data.returnDate;
-          updatedBatch.partialReturnResponsible = data.responsible;
-          updatedBatch.cartridges = updatedBatch.cartridges.map(cartridge => 
-            selectedCartridges.includes(cartridge.id) 
-              ? { 
-                  ...cartridge, 
-                  status: 'available',
-                  returnDate: data.returnDate,
-                  returnResponsible: data.responsible
-                }
-              : cartridge
-          );
+
+          if (isFullReturn) {
+            // Полный возврат
+            updatedBatch.status = 'completed';
+            updatedBatch.cartridges = updatedBatch.cartridges.map((cartridge) =>
+              selectedCartridges.includes(cartridge.id)
+                ? {
+                    ...cartridge,
+                    status: 'available',
+                    returnDate: data.returnDate,
+                    returnResponsible: data.responsible,
+                  }
+                : cartridge,
+            );
+          } else {
+            // Частичный возврат
+            updatedBatch.status = 'partial_return';
+            updatedBatch.returnedCartridges = [
+              ...(updatedBatch.returnedCartridges || []),
+              ...selectedCartridges,
+            ];
+            updatedBatch.partialReturnDate = data.returnDate;
+            updatedBatch.partialReturnResponsible = data.responsible;
+            updatedBatch.cartridges = updatedBatch.cartridges.map((cartridge) =>
+              selectedCartridges.includes(cartridge.id)
+                ? {
+                    ...cartridge,
+                    status: 'available',
+                    returnDate: data.returnDate,
+                    returnResponsible: data.responsible,
+                  }
+                : cartridge,
+            );
+          }
+
+          return updatedBatch;
         }
-        
-        return updatedBatch;
-      }
-      return batch;
-    }));
+        return batch;
+      }),
+    );
 
     // Закрываем диалог
     setShowReturnDialog(false);
@@ -265,61 +292,63 @@ export default function ServiceReturnPage() {
   };
 
   const getInProgressBatches = () => {
-    return serviceBatches.filter(batch => batch.status === 'in_progress' || batch.status === 'partial_return');
+    return serviceBatches.filter(
+      (batch) => batch.status === 'in_progress' || batch.status === 'partial_return',
+    );
   };
 
   const getCompletedBatches = () => {
-    return serviceBatches.filter(batch => batch.status === 'completed');
+    return serviceBatches.filter((batch) => batch.status === 'completed');
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+    <div className='container mx-auto p-6'>
+      <div className='flex items-center gap-4 mb-6'>
+        <Link href='/'>
+          <Button variant='outline' size='sm'>
+            <ArrowLeft className='h-4 w-4 mr-2' />
             Назад
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">Прием из сервиса</h1>
-          <p className="text-muted-foreground">
+          <h1 className='text-3xl font-bold'>Прием из сервиса</h1>
+          <p className='text-muted-foreground'>
             Управление возвратом картриджей из сервисного центра
           </p>
         </div>
       </div>
 
       {/* Статистика */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-orange-500" />
+          <CardContent className='p-4'>
+            <div className='flex items-center space-x-2'>
+              <Clock className='h-5 w-5 text-orange-500' />
               <div>
-                <p className="text-2xl font-bold">{getInProgressBatches().length}</p>
-                <p className="text-sm text-muted-foreground">В работе</p>
+                <p className='text-2xl font-bold'>{getInProgressBatches().length}</p>
+                <p className='text-sm text-muted-foreground'>В работе</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
+          <CardContent className='p-4'>
+            <div className='flex items-center space-x-2'>
+              <CheckCircle className='h-5 w-5 text-green-500' />
               <div>
-                <p className="text-2xl font-bold">{getCompletedBatches().length}</p>
-                <p className="text-sm text-muted-foreground">Выполнено</p>
+                <p className='text-2xl font-bold'>{getCompletedBatches().length}</p>
+                <p className='text-sm text-muted-foreground'>Выполнено</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Package className="h-5 w-5 text-blue-500" />
+          <CardContent className='p-4'>
+            <div className='flex items-center space-x-2'>
+              <Package className='h-5 w-5 text-blue-500' />
               <div>
-                <p className="text-2xl font-bold">{serviceBatches.length}</p>
-                <p className="text-sm text-muted-foreground">Всего партий</p>
+                <p className='text-2xl font-bold'>{serviceBatches.length}</p>
+                <p className='text-sm text-muted-foreground'>Всего партий</p>
               </div>
             </div>
           </CardContent>
@@ -327,15 +356,13 @@ export default function ServiceReturnPage() {
       </div>
 
       {/* Партии в работе */}
-      <Card className="mb-6">
+      <Card className='mb-6'>
         <CardHeader>
           <CardTitle>Партии в работе ({getInProgressBatches().length})</CardTitle>
         </CardHeader>
         <CardContent>
           {getInProgressBatches().length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Нет партий в работе
-            </div>
+            <div className='text-center py-8 text-muted-foreground'>Нет партий в работе</div>
           ) : (
             <Table>
               <TableHeader>
@@ -345,7 +372,7 @@ export default function ServiceReturnPage() {
                   <TableHead>Статус</TableHead>
                   <TableHead>Картриджей</TableHead>
                   <TableHead>Ответственный</TableHead>
-                  <TableHead className="text-right">Действия</TableHead>
+                  <TableHead className='text-right'>Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -353,43 +380,52 @@ export default function ServiceReturnPage() {
                   const availableCount = getAvailableCartridges(batch).length;
                   const returnedCount = getReturnedCartridges(batch).length;
                   const totalCount = batch.cartridges.length;
-                  
+
                   return (
                     <TableRow key={batch.id}>
-                      <TableCell className="font-medium">{batch.batchNumber}</TableCell>
+                      <TableCell className='font-medium'>{batch.batchNumber}</TableCell>
                       <TableCell>{batch.date}</TableCell>
                       <TableCell>{getBatchStatusBadge(batch.status)}</TableCell>
                       <TableCell>
-                        <div className="flex flex-col text-sm">
+                        <div className='flex flex-col text-sm'>
                           <span>Всего: {totalCount}</span>
                           {batch.status === 'partial_return' && (
                             <>
-                              <span className="text-green-600">Вернулось: {returnedCount}</span>
-                              <span className="text-orange-600">Осталось: {availableCount}</span>
+                              <span className='text-green-600'>Вернулось: {returnedCount}</span>
+                              <span className='text-orange-600'>Осталось: {availableCount}</span>
                             </>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>{batch.responsible}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
+                      <TableCell className='text-right'>
+                        <div className='flex gap-2 justify-end'>
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4" />
+                              <Button variant='outline' size='sm'>
+                                <Eye className='h-4 w-4' />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-2xl">
+                            <DialogContent className='max-w-2xl'>
                               <DialogHeader>
                                 <DialogTitle>Партия {batch.batchNumber}</DialogTitle>
                               </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div><strong>Дата отправки:</strong> {batch.date}</div>
-                                  <div><strong>Ответственный:</strong> {batch.responsible}</div>
-                                  <div><strong>Статус:</strong> {getBatchStatusBadge(batch.status)}</div>
+                              <div className='space-y-4'>
+                                <div className='grid grid-cols-2 gap-4 text-sm'>
+                                  <div>
+                                    <strong>Дата отправки:</strong> {batch.date}
+                                  </div>
+                                  <div>
+                                    <strong>Ответственный:</strong> {batch.responsible}
+                                  </div>
+                                  <div>
+                                    <strong>Статус:</strong> {getBatchStatusBadge(batch.status)}
+                                  </div>
                                   {batch.partialReturnDate && (
-                                    <div><strong>Дата частичного возврата:</strong> {batch.partialReturnDate}</div>
+                                    <div>
+                                      <strong>Дата частичного возврата:</strong>{' '}
+                                      {batch.partialReturnDate}
+                                    </div>
                                   )}
                                 </div>
                                 <Table>
@@ -403,24 +439,37 @@ export default function ServiceReturnPage() {
                                   </TableHeader>
                                   <TableBody>
                                     {batch.cartridges.map((cartridge) => {
-                                      const returnInfo = getCartridgeReturnInfo(batch, cartridge.id);
+                                      const returnInfo = getCartridgeReturnInfo(
+                                        batch,
+                                        cartridge.id,
+                                      );
                                       return (
                                         <TableRow key={cartridge.id}>
                                           <TableCell>{cartridge.number}</TableCell>
                                           <TableCell>{cartridge.model}</TableCell>
                                           <TableCell>
-                                            <Badge variant={cartridge.status === 'available' ? 'default' : 'secondary'}>
-                                              {cartridge.status === 'available' ? 'Возвращен' : 'В сервисе'}
+                                            <Badge
+                                              variant={
+                                                cartridge.status === 'available'
+                                                  ? 'default'
+                                                  : 'secondary'
+                                              }
+                                            >
+                                              {cartridge.status === 'available'
+                                                ? 'Возвращен'
+                                                : 'В сервисе'}
                                             </Badge>
                                           </TableCell>
                                           <TableCell>
                                             {returnInfo ? (
-                                              <div className="flex items-center gap-1 text-sm">
-                                                <Calendar className="h-3 w-3" />
+                                              <div className='flex items-center gap-1 text-sm'>
+                                                <Calendar className='h-3 w-3' />
                                                 {returnInfo.returnDate}
                                               </div>
                                             ) : (
-                                              <span className="text-muted-foreground text-sm">—</span>
+                                              <span className='text-muted-foreground text-sm'>
+                                                —
+                                              </span>
                                             )}
                                           </TableCell>
                                         </TableRow>
@@ -431,8 +480,8 @@ export default function ServiceReturnPage() {
                               </div>
                             </DialogContent>
                           </Dialog>
-                          <Button 
-                            size="sm"
+                          <Button
+                            size='sm'
                             onClick={() => openReturnDialog(batch)}
                             disabled={getAvailableCartridges(batch).length === 0}
                           >
@@ -456,9 +505,7 @@ export default function ServiceReturnPage() {
         </CardHeader>
         <CardContent>
           {getCompletedBatches().length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Нет выполненных партий
-            </div>
+            <div className='text-center py-8 text-muted-foreground'>Нет выполненных партий</div>
           ) : (
             <Table>
               <TableHeader>
@@ -468,34 +515,42 @@ export default function ServiceReturnPage() {
                   <TableHead>Статус</TableHead>
                   <TableHead>Картриджей</TableHead>
                   <TableHead>Ответственный</TableHead>
-                  <TableHead className="text-right">Действия</TableHead>
+                  <TableHead className='text-right'>Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {getCompletedBatches().map((batch) => (
                   <TableRow key={batch.id}>
-                    <TableCell className="font-medium">{batch.batchNumber}</TableCell>
+                    <TableCell className='font-medium'>{batch.batchNumber}</TableCell>
                     <TableCell>{batch.date}</TableCell>
                     <TableCell>{getBatchStatusBadge(batch.status)}</TableCell>
                     <TableCell>{batch.cartridges.length}</TableCell>
                     <TableCell>{batch.responsible}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className='text-right'>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4" />
+                          <Button variant='outline' size='sm'>
+                            <Eye className='h-4 w-4' />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-3xl">
+                        <DialogContent className='max-w-3xl'>
                           <DialogHeader>
                             <DialogTitle>Партия {batch.batchNumber} - Выполнено</DialogTitle>
                           </DialogHeader>
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4 text-sm bg-green-50 p-4 rounded-lg">
-                              <div><strong>Дата отправки:</strong> {batch.date}</div>
-                              <div><strong>Ответственный за отправку:</strong> {batch.responsible}</div>
-                              <div><strong>Статус:</strong> {getBatchStatusBadge(batch.status)}</div>
-                              <div><strong>Всего картриджей:</strong> {batch.cartridges.length}</div>
+                          <div className='space-y-4'>
+                            <div className='grid grid-cols-2 gap-4 text-sm bg-green-50 p-4 rounded-lg'>
+                              <div>
+                                <strong>Дата отправки:</strong> {batch.date}
+                              </div>
+                              <div>
+                                <strong>Ответственный за отправку:</strong> {batch.responsible}
+                              </div>
+                              <div>
+                                <strong>Статус:</strong> {getBatchStatusBadge(batch.status)}
+                              </div>
+                              <div>
+                                <strong>Всего картриджей:</strong> {batch.cartridges.length}
+                              </div>
                             </div>
                             <Table>
                               <TableHeader>
@@ -512,25 +567,29 @@ export default function ServiceReturnPage() {
                                   const returnInfo = getCartridgeReturnInfo(batch, cartridge.id);
                                   return (
                                     <TableRow key={cartridge.id}>
-                                      <TableCell className="font-medium">{cartridge.number}</TableCell>
+                                      <TableCell className='font-medium'>
+                                        {cartridge.number}
+                                      </TableCell>
                                       <TableCell>{cartridge.model}</TableCell>
                                       <TableCell>
                                         {returnInfo ? (
-                                          <div className="flex items-center gap-1">
-                                            <Calendar className="h-3 w-3 text-green-600" />
-                                            <span className="text-green-700 font-medium">
+                                          <div className='flex items-center gap-1'>
+                                            <Calendar className='h-3 w-3 text-green-600' />
+                                            <span className='text-green-700 font-medium'>
                                               {returnInfo.returnDate}
                                             </span>
                                           </div>
                                         ) : (
-                                          <span className="text-muted-foreground">—</span>
+                                          <span className='text-muted-foreground'>—</span>
                                         )}
                                       </TableCell>
                                       <TableCell>
-                                        {returnInfo?.responsible || cartridge.returnResponsible || '—'}
+                                        {returnInfo?.responsible ||
+                                          cartridge.returnResponsible ||
+                                          '—'}
                                       </TableCell>
                                       <TableCell>
-                                        <span className="text-sm text-muted-foreground">
+                                        <span className='text-sm text-muted-foreground'>
                                           {returnInfo?.notes || '—'}
                                         </span>
                                       </TableCell>
@@ -553,36 +612,47 @@ export default function ServiceReturnPage() {
 
       {/* Диалог приема партии */}
       <Dialog open={showReturnDialog} onOpenChange={setShowReturnDialog}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className='max-w-4xl'>
           <DialogHeader>
-            <DialogTitle>
-              Прием партии {selectedBatch?.batchNumber}
-            </DialogTitle>
+            <DialogTitle>Прием партии {selectedBatch?.batchNumber}</DialogTitle>
           </DialogHeader>
-          
+
           {selectedBatch && (
-            <div className="space-y-6">
+            <div className='space-y-6'>
               {/* Информация о партии */}
-              <div className="grid grid-cols-2 gap-4 text-sm bg-muted p-4 rounded-lg">
-                <div><strong>Дата отправки:</strong> {selectedBatch.date}</div>
-                <div><strong>Ответственный за отправку:</strong> {selectedBatch.responsible}</div>
-                <div><strong>Статус:</strong> {getBatchStatusBadge(selectedBatch.status)}</div>
-                <div><strong>Всего картриджей:</strong> {selectedBatch.cartridges.length}</div>
+              <div className='grid grid-cols-2 gap-4 text-sm bg-muted p-4 rounded-lg'>
+                <div>
+                  <strong>Дата отправки:</strong> {selectedBatch.date}
+                </div>
+                <div>
+                  <strong>Ответственный за отправку:</strong> {selectedBatch.responsible}
+                </div>
+                <div>
+                  <strong>Статус:</strong> {getBatchStatusBadge(selectedBatch.status)}
+                </div>
+                <div>
+                  <strong>Всего картриджей:</strong> {selectedBatch.cartridges.length}
+                </div>
               </div>
 
               {/* Выбор картриджей */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">
-                    Выберите картриджи для приема ({getAvailableCartridges(selectedBatch).length} доступно)
+                <div className='flex items-center justify-between mb-4'>
+                  <h3 className='text-lg font-semibold'>
+                    Выберите картриджи для приема ({getAvailableCartridges(selectedBatch).length}{' '}
+                    доступно)
                   </h3>
-                  <div className="flex items-center space-x-2">
+                  <div className='flex items-center space-x-2'>
                     <Checkbox
-                      id="select-all-return"
-                      checked={selectedCartridges.length === getAvailableCartridges(selectedBatch).length}
-                      onCheckedChange={(checked) => handleSelectAll(selectedBatch, checked as boolean)}
+                      id='select-all-return'
+                      checked={
+                        selectedCartridges.length === getAvailableCartridges(selectedBatch).length
+                      }
+                      onCheckedChange={(checked) =>
+                        handleSelectAll(selectedBatch, checked as boolean)
+                      }
                     />
-                    <Label htmlFor="select-all-return" className="text-sm">
+                    <Label htmlFor='select-all-return' className='text-sm'>
                       Выбрать все
                     </Label>
                   </div>
@@ -591,7 +661,7 @@ export default function ServiceReturnPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-12"></TableHead>
+                      <TableHead className='w-12'></TableHead>
                       <TableHead>Номер</TableHead>
                       <TableHead>Модель</TableHead>
                       <TableHead>Статус</TableHead>
@@ -603,22 +673,22 @@ export default function ServiceReturnPage() {
                       const isReturned = selectedBatch.returnedCartridges?.includes(cartridge.id);
                       const isAvailable = cartridge.status === 'service';
                       const returnInfo = getCartridgeReturnInfo(selectedBatch, cartridge.id);
-                      
+
                       return (
                         <TableRow key={cartridge.id} className={isReturned ? 'bg-green-50' : ''}>
                           <TableCell>
                             {isAvailable ? (
                               <Checkbox
                                 checked={selectedCartridges.includes(cartridge.id)}
-                                onCheckedChange={(checked) => 
+                                onCheckedChange={(checked) =>
                                   handleCartridgeSelect(cartridge.id, checked as boolean)
                                 }
                               />
                             ) : (
-                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <CheckCircle className='h-4 w-4 text-green-500' />
                             )}
                           </TableCell>
-                          <TableCell className="font-medium">{cartridge.number}</TableCell>
+                          <TableCell className='font-medium'>{cartridge.number}</TableCell>
                           <TableCell>{cartridge.model}</TableCell>
                           <TableCell>
                             <Badge variant={isReturned ? 'default' : 'secondary'}>
@@ -627,12 +697,12 @@ export default function ServiceReturnPage() {
                           </TableCell>
                           <TableCell>
                             {returnInfo ? (
-                              <div className="flex items-center gap-1 text-sm">
-                                <Calendar className="h-3 w-3 text-green-600" />
-                                <span className="text-green-700">{returnInfo.returnDate}</span>
+                              <div className='flex items-center gap-1 text-sm'>
+                                <Calendar className='h-3 w-3 text-green-600' />
+                                <span className='text-green-700'>{returnInfo.returnDate}</span>
                               </div>
                             ) : (
-                              <span className="text-muted-foreground text-sm">—</span>
+                              <span className='text-muted-foreground text-sm'>—</span>
                             )}
                           </TableCell>
                         </TableRow>
@@ -643,45 +713,49 @@ export default function ServiceReturnPage() {
               </div>
 
               {/* Форма приема */}
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                <div className='grid grid-cols-2 gap-4'>
                   <div>
-                    <Label htmlFor="returnDate">Дата приема</Label>
+                    <Label htmlFor='returnDate'>Дата приема</Label>
                     <Input
-                      id="returnDate"
-                      type="date"
-                      {...register("returnDate", { required: "Дата обязательна" })}
+                      id='returnDate'
+                      type='date'
+                      {...register('returnDate', { required: 'Дата обязательна' })}
                     />
                     {errors.returnDate && (
-                      <p className="text-sm text-red-500 mt-1">{errors.returnDate.message}</p>
+                      <p className='text-sm text-red-500 mt-1'>{errors.returnDate.message}</p>
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="responsible">Ответственный за прием</Label>
+                    <Label htmlFor='responsible'>Ответственный за прием</Label>
                     <Input
-                      id="responsible"
-                      placeholder="ФИО ответственного"
-                      {...register("responsible", { required: "Ответственный обязателен" })}
+                      id='responsible'
+                      placeholder='ФИО ответственного'
+                      {...register('responsible', { required: 'Ответственный обязателен' })}
                     />
                     {errors.responsible && (
-                      <p className="text-sm text-red-500 mt-1">{errors.responsible.message}</p>
+                      <p className='text-sm text-red-500 mt-1'>{errors.responsible.message}</p>
                     )}
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="notes">Примечания</Label>
+                  <Label htmlFor='notes'>Примечания</Label>
                   <Textarea
-                    id="notes"
-                    placeholder="Состояние картриджей, особые отметки..."
-                    {...register("notes")}
+                    id='notes'
+                    placeholder='Состояние картриджей, особые отметки...'
+                    {...register('notes')}
                   />
                 </div>
 
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setShowReturnDialog(false)}>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => setShowReturnDialog(false)}
+                  >
                     Отмена
                   </Button>
-                  <Button type="submit" disabled={selectedCartridges.length === 0}>
+                  <Button type='submit' disabled={selectedCartridges.length === 0}>
                     Принять ({selectedCartridges.length} шт.)
                   </Button>
                 </DialogFooter>

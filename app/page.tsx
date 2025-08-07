@@ -44,13 +44,13 @@ const initialCartridges: Cartridge[] = [
 
 const statusConfig = {
   available: {
-    label: 'В наличии',
+    label: 'Готовы к использованию',
     color: 'bg-green-500',
     textColor: 'text-green-700',
     bgColor: 'bg-green-50',
   },
   reserve: {
-    label: 'В резерве',
+    label: 'Сняты с обслуживания',
     color: 'bg-blue-500',
     textColor: 'text-blue-700',
     bgColor: 'bg-blue-50',
@@ -68,7 +68,7 @@ const statusConfig = {
     bgColor: 'bg-red-50',
   },
   refill: {
-    label: 'В заправке',
+    label: 'Требуется заправка',
     color: 'bg-purple-500',
     textColor: 'text-purple-700',
     bgColor: 'bg-purple-50',

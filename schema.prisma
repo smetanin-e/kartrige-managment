@@ -13,9 +13,9 @@ generator client {
 enum CartridgeStatus {
     service // В сервисе
     working // В работе
-    reserve // В резерве
-    available // В наличии
-    refill // В заправке
+    reserve // Сняты с обслуживания
+    available // Готовы к использованию
+    refill // Требуется заправка
 }
 
 // Перечисление для статусов партий отправки в сервис
