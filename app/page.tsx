@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/shared/components/ui/button';
+import { Input } from '@/shared/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/shared/components/ui/select';
 import {
   Table,
   TableBody,
@@ -17,18 +17,28 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+} from '@/shared/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
 import { Plus, Search, Filter, MoreHorizontal, Edit, Package, Download } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/shared/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { Cartridge, CartridgeStatus } from '@/types/cartridge';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
+import { Label } from '@/shared/components/ui/label';
+import React from 'react';
+import { AddNewCartridge } from '@/shared/components/modals';
 
 // Начальные данные для демонстрации
 const initialCartridges: Cartridge[] = [
@@ -76,9 +86,20 @@ const statusConfig = {
 };
 
 export default function HomePage() {
+  // ===========================Мой код=============================================
+  const [openPopup, setOpenPopup] = React.useState(false);
+  const closePopup = () => {
+    setOpenPopup(false);
+  };
+
+  //================================================================================
+
   const [cartridges, setCartridges] = useState<Cartridge[]>(initialCartridges);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<CartridgeStatus | 'all'>('all');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newNumber, setNewNumber] = useState('');
+  const [newModel, setNewModel] = useState('');
 
   const filteredCartridges = cartridges.filter((cartridge) => {
     const matchesSearch =
@@ -102,18 +123,39 @@ export default function HomePage() {
   };
 
   const addNewCartridge = () => {
-    const newCartridge: Cartridge = {
-      id: Date.now().toString(),
-      number: `МК${Math.floor(Math.random() * 1000) + 100}`,
-      model: ['CE505A', 'CF280A', 'CB435A'][Math.floor(Math.random() * 3)],
-      status: 'available',
-    };
-
-    setCartridges((prev) => [...prev, newCartridge]);
+    setShowAddDialog(true);
   };
 
   const getStatusCount = (status: CartridgeStatus) => {
     return cartridges.filter((c) => c.status === status).length;
+  };
+
+  const handleSaveNewCartridge = () => {
+    const number = newNumber.trim();
+    const model = newModel.trim();
+
+    if (!number || !model) {
+      alert('Пожалуйста, заполните номер и модель картриджа.');
+      return;
+    }
+
+    // Prevent duplicate numbers (they should be unique)
+    if (cartridges.some((c) => c.number.toLowerCase() === number.toLowerCase())) {
+      alert('Картридж с таким номером уже существует.');
+      return;
+    }
+
+    const newCartridge: Cartridge = {
+      id: Date.now().toString(),
+      number,
+      model,
+      status: 'available',
+    };
+
+    setCartridges((prev) => [newCartridge, ...prev]);
+    setShowAddDialog(false);
+    setNewNumber('');
+    setNewModel('');
   };
 
   return (
@@ -144,7 +186,7 @@ export default function HomePage() {
               Прием из сервиса
             </Button>
           </Link>
-          <Button onClick={addNewCartridge} className='flex items-center gap-2'>
+          <Button onClick={() => setOpenPopup(true)} className='flex items-center gap-2'>
             <Plus className='h-4 w-4' />
             Добавить картридж
           </Button>
@@ -272,6 +314,7 @@ export default function HomePage() {
           </Table>
         </CardContent>
       </Card>
+      <AddNewCartridge openPopup={openPopup} closePopup={closePopup} />
     </div>
   );
 }
